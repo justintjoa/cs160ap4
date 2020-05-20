@@ -1,0 +1,1 @@
+./tests/test1.l2 10 2> my-GC-stats.txt

@@ -1,0 +1,1 @@
+bash: ./tests/test1.l2: Permission denied
