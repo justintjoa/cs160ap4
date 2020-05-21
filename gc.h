@@ -22,9 +22,11 @@ class GcSemiSpace {
   // in the heap; it should be a positive even number.
   GcSemiSpace(intptr_t* frame_ptr, int heap_size_in_words);
   void reset();
-  intptr_t* copy(intptr_t* object);
+  void copyroot(intptr_t* object);
+  void copyfield(intptr_t* object);
   void collect(intptr_t* frame);
   bool checkspace(int numwords);
+  void add(int addition);
   // Allocates num_words+1 words on the heap and returns the address of the
   // second word. The first word (at a negative offset from the returned
   // address) is intended to be the 'header word', which should be filled in by
@@ -41,9 +43,9 @@ class GcSemiSpace {
   int from;
   intptr_t* heapbase;
   intptr_t* heapcur;
-  std::vector<intptr_t*> rootset;
   intptr_t* base;
   intptr_t* scan;
+  std::vector<intptr_t*> rootset;
   int stacksize = 0;
   int totalheapwords;
   // Your private methods for functionality such as garbage

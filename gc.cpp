@@ -17,16 +17,16 @@ GcSemiSpace::GcSemiSpace(intptr_t* frame_ptr, int heap_size_in_words) {
   totalheapwords = heap_size_in_words;
 }
 
+void GcSemiSpace::add(int addition) {
+  heapcur = heapcur + addition;
+  from = from + addition;
+}
 
 
 void GcSemiSpace::collect(intptr_t* frame) {
   intptr_t* newheap = (intptr_t*) malloc(totalheapwords*4);
   heapcur = newheap;
   scan = newheap;
-  from = 0;
-  if (rootset.size() > 0) {
-    rootset.clear();
-  }
   from = 0;
   while (frame != base) {
     frame = frame - 12;
@@ -41,15 +41,28 @@ void GcSemiSpace::collect(intptr_t* frame) {
 }
 
 
-intptr_t* GcSemiSpace::copy(intptr_t* object) {
-  if (*(object-4) & 0x1 == 1) { //not a valid forwarding pointer, copy me!
-    intptr_t* temp = heapcur;
-    heapcur = heapcur + sizeof(object);
-    *temp = *object;
-    *(object-4) = *temp;
-    return (object-4);
+void GcSemiSpace::copyroot(intptr_t* object) {
+  if (*(object-4) & 0x1 == 0) { //am a valid forwarding pointer, ignore me!
+    return;
   }
-  return NULL;
+  intptr_t header = (*(object-4));
+  int start = 0x100;
+  int counter = 0;
+  while (start != 31) {
+    if (header & start == start) {
+      intptr_t* obj = object + counter*4;
+      intptr_t* temp = heapcur;
+      heapcur = heapcur + sizeof(obj);
+      *temp = *obj;
+    }
+    start = start<<1;
+    counter++;
+  }
+
+}
+
+void GcSemiSpace::copyfield(intptr_t* object) {
+  
 }
 
 
@@ -58,9 +71,6 @@ void GcSemiSpace::reset() {
   from = 0;
   base = NULL;
   scan = NULL;
-  if (rootset.size() > 0) {
-    rootset.clear();
-  }
   stacksize = 0;
   heapbase = NULL;
   heapcur = NULL;
