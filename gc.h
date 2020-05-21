@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 // Called by the garbage collector after each collection to report the
 // statistics about the heap after garbage collection.
@@ -20,7 +21,10 @@ class GcSemiSpace {
   // for the L2 program. The 'heap_size' argument is the number of desired words
   // in the heap; it should be a positive even number.
   GcSemiSpace(intptr_t* frame_ptr, int heap_size_in_words);
-
+  void reset();
+  intptr_t* copy(intptr_t* object);
+  void collect(intptr_t* frame);
+  bool checkspace(int numwords);
   // Allocates num_words+1 words on the heap and returns the address of the
   // second word. The first word (at a negative offset from the returned
   // address) is intended to be the 'header word', which should be filled in by
@@ -34,6 +38,14 @@ class GcSemiSpace {
   intptr_t* Alloc(int32_t num_words, intptr_t * curr_frame_ptr);
 
  private:
+  int from;
+  intptr_t* heapbase;
+  intptr_t* heapcur;
+  std::vector<intptr_t*> rootset;
+  intptr_t* base;
+  intptr_t* scan;
+  int stacksize = 0;
+  int totalheapwords;
   // Your private methods for functionality such as garbage
   // collection, stack walking, and copying live data should go here
 };
