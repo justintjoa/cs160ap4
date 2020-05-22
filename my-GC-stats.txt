@@ -1,1 +1,3 @@
-bash: ./tests/test1.l2: Permission denied
+[3 objects, 6 words]
+terminate called after throwing an instance of 'OutOfMemoryError'
+  what():  Out of memory.

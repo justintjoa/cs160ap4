@@ -1,4 +1,4 @@
-CXX=g++-8
+CXX=g++
 
 # Flags for compiler
 CXXFLAGS=-std=c++17 -Wall -I. -fPIC -g -O3

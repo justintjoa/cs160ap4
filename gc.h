@@ -24,7 +24,7 @@ class GcSemiSpace {
   void reset();
   void swappointer();
   intptr_t* copy(intptr_t* object);
-  void copyhelper(intptr_t* ref, intptr_t* header);
+  void copyhelper(intptr_t* ref, intptr_t header);
   void stackcopyhelper(intptr_t* ref, intptr_t* header, int scalar);
   void collect(intptr_t* frame);
   bool checkspace(int numwords);
