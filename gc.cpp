@@ -71,6 +71,7 @@ void GcSemiSpace::collect(intptr_t* frame) {
 
 void GcSemiSpace::addobj(intptr_t* header, intptr_t* object) {
   int size = (int)header & 0xFF000000;
+  std::cout << "Currsize is" << size << std::endl;
   size = size/pow(2,24);
   std::cout << "size is " << size << std::endl;
   *(object-1) = ((intptr_t) heapcur) + 1;
