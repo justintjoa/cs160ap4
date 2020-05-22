@@ -23,8 +23,9 @@ class GcSemiSpace {
   GcSemiSpace(intptr_t* frame_ptr, int heap_size_in_words);
   void reset();
   void swappointer();
-  void copy(intptr_t* object);
+  intptr_t* copy(intptr_t* object);
   void copyhelper(intptr_t* ref, intptr_t* header);
+  void stackcopyhelper(intptr_t* ref, intptr_t* header, int scalar);
   void collect(intptr_t* frame);
   bool checkspace(int numwords);
   void add(int addition);

@@ -25,16 +25,26 @@ void GcSemiSpace::add(int addition) {
   from = from + addition;
 }
 
-void GcSemiSpace::copyhelper(intptr_t* ref, intptr_t* header) {
-  int start = 0x40000000;
-  int counter = 0;
-  while (start != 0x00000080) {
-    if ((int)header & start == start) {
-      intptr_t* obj = ref + counter;
-      copy(obj);
+void GcSemiSpace::stackcopyhelper(intptr_t* ref, intptr_t* header, int scalar) {
+  int meter = (int)header;
+  for (int i = 0; i < 32; i++) {
+    if ((meter & 0x1) == 0x1) {
+      intptr_t* obj = (ref + i*scalar);
+      *obj = (intptr_t)copy(obj);
     }
-    start = start>>1;
-    counter++;
+    meter = meter >> 1;
+  }
+}
+
+void GcSemiSpace::copyhelper(intptr_t* ref, intptr_t* header) {
+  int meter = (int)header;
+  meter = meter>>1;
+  for (int i = 0; i < 23; i++) {
+    if ((meter & 0x1) == 0x1) {
+      intptr_t* obj = ref + i;
+      *obj = (intptr_t)copy(obj);
+    }
+    meter = meter>>1;
   }
 }
 
@@ -52,8 +62,8 @@ void GcSemiSpace::collect(intptr_t* frame) {
   while (frame != base) {
     intptr_t* argument = frame - 1;
     intptr_t* local = frame - 2;
-    copyhelper(frame,argument);
-    copyhelper(frame,local);
+    stackcopyhelper(frame+2,argument,1);
+    stackcopyhelper(frame-3,local,-1);
     frame = (intptr_t*) *frame;
   }
   ReportGCStats(numobj,from);
@@ -61,12 +71,12 @@ void GcSemiSpace::collect(intptr_t* frame) {
 
 void GcSemiSpace::addobj(intptr_t* header, intptr_t* object) {
   int size = (int)header & 0xFF000000;
-  //size = size/pow(2,24);
+  size = size/pow(2,24);
   std::cout << "size is " << size << std::endl;
   *(object-1) = ((intptr_t) heapcur) + 1;
   *heapcur = *header;
   add(1);
-  for (int i = 0; i < size/4; i++) {
+  for (int i = 0; i < size; i++) {
     *heapcur = *object;
     add(1);
     object = object + 1;
@@ -74,14 +84,14 @@ void GcSemiSpace::addobj(intptr_t* header, intptr_t* object) {
   numobj++;
 }
 
-void GcSemiSpace::copy(intptr_t* object) {
+intptr_t* GcSemiSpace::copy(intptr_t* object) {
   intptr_t* header;
   header = (object-1);
-  if (*header & 0x1 == 0) { //a valid forwarding pointer, don't copy me!
-    return;
+  if (*header & 0x1 == 1) { //a nonvalid forwarding pointer, copy me!
+    addobj(header, object);
+    copyhelper(object,header);
   }
-  addobj(header, object);
-  copyhelper(object,header);
+  return (intptr_t*)*(object-1);
 }
 
 
